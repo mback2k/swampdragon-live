@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from django.core.cache import InvalidCacheBackendError, caches
-from django.core.cache.utils import make_template_fragment_key
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import get_template
 from django.template import Context, Library
@@ -25,11 +24,10 @@ def include_live(context, tag_name, template_name, **kwargs):
             instance = value
             instance_type = ContentType.objects.get_for_model(instance.__class__)
     
-            fragment_name = hashlib.sha1(tag_name + template_name).hexdigest()
-            user_cache_key = make_template_fragment_key(fragment_name, [user.id,
-                                                                        instance_type.pk,
-                                                                        instance.pk])
-            user_cache_key = user_cache_key.replace('.', '_')
+            fragment_hash = hashlib.sha1('%s:%s' % (tag_name, template_name)).hexdigest()
+            instance_hash = hashlib.sha1('%d:%d' % (instance_type.pk, instance.pk)).hexdigest()
+            username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
+            user_cache_key = '%s-%s-%s' % (fragment_hash, instance_hash, username_hash)
             user_cache_keys.append(user_cache_key)
             channel_cache.set(user_cache_key, (template_name, new_context))
     
