@@ -5,7 +5,7 @@ from django.template.loader import get_template
 from celery.task import task
 
 @task(ignore_result=True)
-def push_new_content(instance_type_pk, instance_pk):
+def push_new_content_for_instance(instance_type_pk, instance_pk):
     try:
         channel_cache = caches['swampdragon-live']
     except InvalidCacheBackendError:
