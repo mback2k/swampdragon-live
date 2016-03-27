@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from swampdragon.pubsub_providers.data_publisher import publish_data
 from django.core.cache import InvalidCacheBackendError, caches
-from django.core.cache.utils import make_template_fragment_key
 from django.template.loader import get_template
 from celery.task import task
 
@@ -12,8 +11,7 @@ def push_new_content(instance_type_pk, instance_pk):
     except InvalidCacheBackendError:
         channel_cache = caches['default']
 
-    cache_key = make_template_fragment_key('swampdragon-live', [instance_type_pk,
-                                                                instance_pk])
+    cache_key = 'swampdragon-live.type.%d.instance.%d' % (instance_type_pk, instance_pk)
     cache_keys = channel_cache.get(cache_key, [])
 
     for cache_key in cache_keys:

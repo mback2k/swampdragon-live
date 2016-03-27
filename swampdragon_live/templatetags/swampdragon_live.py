@@ -33,8 +33,7 @@ def include_live(context, tag_name, template_name, **kwargs):
             user_cache_keys.append(user_cache_key)
             channel_cache.set(user_cache_key, (template_name, new_context))
     
-            cache_key = make_template_fragment_key('swampdragon-live', [instance_type.pk,
-                                                                        instance.pk])
+            cache_key = 'swampdragon-live.type.%d.instance.%d' % (instance_type.pk, instance.pk)
             cache_keys = channel_cache.get(cache_key, set())
             cache_keys.add(user_cache_key)
             channel_cache.set(cache_key, set(cache_keys))
