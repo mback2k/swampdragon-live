@@ -8,6 +8,22 @@ import hashlib
 
 register = Library()
 
+def listen_on_instance(channel_cache, tag_name, template_name, user, new_context, instance):
+    instance_type = ContentType.objects.get_for_model(instance.__class__)
+
+    fragment_hash = hashlib.sha1('%s:%s' % (tag_name, template_name)).hexdigest()
+    instance_hash = hashlib.sha1('%d:%d' % (instance_type.pk, instance.pk)).hexdigest()
+    username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
+    user_cache_key = '%s-%s-%s' % (fragment_hash, instance_hash, username_hash)
+    channel_cache.set(user_cache_key, (template_name, new_context))
+
+    cache_key = 'swampdragon-live.type.%d.instance.%d' % (instance_type.pk, instance.pk)
+    cache_keys = channel_cache.get(cache_key, set())
+    cache_keys.add(user_cache_key)
+    channel_cache.set(cache_key, set(cache_keys))
+
+    return user_cache_key
+
 @register.simple_tag(takes_context=True)
 def include_live(context, tag_name, template_name, **kwargs):
     user = context['user']
@@ -21,20 +37,9 @@ def include_live(context, tag_name, template_name, **kwargs):
     user_cache_keys = []
     for value in kwargs.values():
         if isinstance(value, Model):
-            instance = value
-            instance_type = ContentType.objects.get_for_model(instance.__class__)
-    
-            fragment_hash = hashlib.sha1('%s:%s' % (tag_name, template_name)).hexdigest()
-            instance_hash = hashlib.sha1('%d:%d' % (instance_type.pk, instance.pk)).hexdigest()
-            username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
-            user_cache_key = '%s-%s-%s' % (fragment_hash, instance_hash, username_hash)
+            user_cache_key = listen_on_instance(channel_cache, tag_name, template_name,
+                                                user, new_context, instance=value)
             user_cache_keys.append(user_cache_key)
-            channel_cache.set(user_cache_key, (template_name, new_context))
-    
-            cache_key = 'swampdragon-live.type.%d.instance.%d' % (instance_type.pk, instance.pk)
-            cache_keys = channel_cache.get(cache_key, set())
-            cache_keys.add(user_cache_key)
-            channel_cache.set(cache_key, set(cache_keys))
 
     channels = map(lambda c: 'swampdragon-live-%s' % c, user_cache_keys)
     classes = 'swampdragon-live %s' % ' '.join(channels)
