@@ -6,7 +6,8 @@ from .tasks import push_new_content
 
 @receiver(post_save)
 def post_save_handler(sender, instance, **kwargs):
-    instance_type = ContentType.objects.get_for_model(instance.__class__)
+    if ContentType.objects.exists():
+        instance_type = ContentType.objects.get_for_model(instance.__class__)
 
-    push_new_content.apply_async(countdown=1, kwargs={'instance_type_pk': instance_type.pk,
-                                                      'instance_pk': instance.pk})
+        push_new_content.apply_async(countdown=1, kwargs={'instance_type_pk': instance_type.pk,
+                                                          'instance_pk': instance.pk})
