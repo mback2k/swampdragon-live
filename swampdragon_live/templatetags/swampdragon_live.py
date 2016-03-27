@@ -27,6 +27,7 @@ def listen_on_instance(channel_cache, tag_name, template_name, user, new_context
 @register.simple_tag(takes_context=True)
 def include_live(context, tag_name, template_name, **kwargs):
     user = context['user']
+    kwargs['user'] = user
     new_context = Context(kwargs)
 
     try:
