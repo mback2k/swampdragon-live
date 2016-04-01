@@ -13,7 +13,9 @@ Install the development version by cloning the source from github.com:
 
     pip install git+https://github.com/mback2k/swampdragon-live.git
 
-At the moment Django 1.8 and Celery are required dependencies.
+Before Django 1.9 the additional package
+[django-transaction-hooks](https://pypi.python.org/pypi/django-transaction-hooks)
+is required in order to listen for deletions on a given QuerySet.
 
 Configuration
 -------------
