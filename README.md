@@ -13,10 +13,6 @@ Install the development version by cloning the source from github.com:
 
     pip install git+https://github.com/mback2k/swampdragon-live.git
 
-Before Django 1.9 the additional package
-[django-transaction-hooks](https://pypi.python.org/pypi/django-transaction-hooks)
-is required in order to listen for deletions on a given QuerySet.
-
 Configuration
 -------------
 Add the package to your `INSTALLED_APPS`:
