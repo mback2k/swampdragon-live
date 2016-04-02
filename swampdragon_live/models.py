@@ -7,15 +7,16 @@ from .pushers import push_new_content_for_instance
 from .pushers import push_new_content_for_queryset
 
 @receiver(post_save)
-def post_save_handler(sender, instance, **kwargs):
+def post_save_handler(sender, instance, created, **kwargs):
     if ContentType.objects.exists():
         instance_type = ContentType.objects.get_for_model(instance.__class__)
 
-        push_new_content_for_queryset(queryset_type_pk=instance_type.pk,
-                                      queryset_pk=instance.pk)
-
-        push_new_content_for_instance(instance_type_pk=instance_type.pk,
-                                      instance_pk=instance.pk)
+        if created:
+            push_new_content_for_queryset(queryset_type_pk=instance_type.pk,
+                                          queryset_pk=instance.pk)
+        else:
+            push_new_content_for_instance(instance_type_pk=instance_type.pk,
+                                          instance_pk=instance.pk)
 
 @receiver(pre_delete)
 def pre_delete_handler(sender, instance, **kwargs):
