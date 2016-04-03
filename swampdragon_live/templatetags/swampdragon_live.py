@@ -7,6 +7,7 @@ from django.db.models.query import QuerySet
 from django.db.models import Model
 import hashlib
 
+from ..utils import get_channel_cache
 from ..classes import ModelInstanceRef
 from ..classes import ModelQuerySetRef
 from ..classes import ContextRef
@@ -64,10 +65,7 @@ def include_live(context, tag_name, template_name, **kwargs):
     user = context['user']
     kwargs['user'] = user
 
-    try:
-        channel_cache = caches['swampdragon-live']
-    except InvalidCacheBackendError:
-        channel_cache = caches['default']
+    channel_cache = get_channel_cache()
 
     new_context_data = {}
     for key, value in kwargs.items():

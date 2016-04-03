@@ -3,12 +3,7 @@ from swampdragon.pubsub_providers.data_publisher import publish_data
 from django.core.cache import InvalidCacheBackendError, caches
 from django.template.loader import get_template
 
-def get_channel_cache():
-    try:
-        channel_cache = caches['swampdragon-live']
-    except InvalidCacheBackendError:
-        channel_cache = caches['default']
-    return channel_cache
+from .utils import get_channel_cache
 
 def push_new_content_for_instance(instance_type_pk, instance_pk):
     channel_cache = get_channel_cache()
