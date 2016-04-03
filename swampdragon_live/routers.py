@@ -8,23 +8,24 @@ from .utils import get_channel_cache
 class LiveTemplateRouter(BaseRouter):
     route_name = 'swampdragon-live'
     valid_verbs = ['subscribe', 'unsubscribe']
-    valid_channels = {}
+
+    def __init__(self, *args, **kwargs):
+        self.channel_cache = get_channel_cache()
+        return super(LiveTemplateRouter, self).__init__(*args, **kwargs)
 
     def get_subscription_channels(self, key, **kwargs):
-        return self.valid_channels.keys()
+        return self.channel_cache.keys('swampdragon-live-*')
 
     def subscribe(self, **kwargs):
         channel = kwargs.get('channel')
         if channel and self.validate_channel(channel):
-            self.valid_channels.setdefault(channel, channel)
-            self.update_channel(channel)
+            self.subscribe_valid_channel(channel)
         return super(LiveTemplateRouter, self).subscribe(**kwargs)
 
     def unsubscribe(self, **kwargs):
         channel = kwargs.get('channel')
         if channel and self.validate_channel(channel):
-            self.valid_channels.pop(channel, channel)
-            self.delete_channel(channel)
+            self.unsubscribe_valid_channel(channel)
         return super(LiveTemplateRouter, self).unsubscribe(**kwargs)
 
     def validate_channel(self, channel):
@@ -37,14 +38,14 @@ class LiveTemplateRouter(BaseRouter):
                         return True
         return False
 
-    def update_channel(self, channel):
-        channel_cache = get_channel_cache()
-        data = channel_cache.get(channel)
-        if not data is None:
-            channel_cache.set(channel, data)
+    def subscribe_valid_channel(self, channel):
+        refc_cache_key = channel.replace('swampdragon-live-', 'swampdragon-live.refc.')
+        if self.channel_cache.incr(refc_cache_key):
+            self.channel_cache.expire(channel, timeout=300)
 
-    def delete_channel(self, channel):
-        channel_cache = get_channel_cache()
-        channel_cache.delete(channel)
+    def unsubscribe_valid_channel(self, channel):
+        refc_cache_key = channel.replace('swampdragon-live-', 'swampdragon-live.refc.')
+        if not self.channel_cache.decr(refc_cache_key):
+            self.channel_cache.delete(channel)
 
 route_handler.register(LiveTemplateRouter)
