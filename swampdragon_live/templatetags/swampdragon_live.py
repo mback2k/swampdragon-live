@@ -31,7 +31,7 @@ def listen_on_instance(channel_cache, tag_name, template_name, user, new_context
     fragment_hash = hashlib.sha1('%s:%s' % (tag_name, template_name)).hexdigest()
     instance_hash = hashlib.sha1('%d:%d' % (instance_type_pk, instance_pk)).hexdigest()
     username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
-    cache_key = '%s-%s-%s' % (fragment_hash, queryset_hash, username_hash)
+    cache_key = '%s-%s-%s' % (fragment_hash, instance_hash, username_hash)
     user_cache_key = 'swampdragon-live-%s' % cache_key
     refc_cache_key = 'swampdragon-live.refc.%s' % cache_key
     channel_cache.set(user_cache_key, (template_name, new_context))
