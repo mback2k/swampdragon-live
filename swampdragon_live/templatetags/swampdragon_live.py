@@ -32,12 +32,12 @@ def listen_on_instance(channel_cache, tag_name, template_name, user, new_context
     instance_hash = hashlib.sha1('%d:%d' % (instance_type_pk, instance_pk)).hexdigest()
     username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
     cache_key = '%s-%s-%s' % (fragment_hash, instance_hash, username_hash)
-    user_cache_key = 'swampdragon-live-%s' % cache_key
-    refc_cache_key = 'swampdragon-live.refc.%s' % cache_key
+    user_cache_key = 'sdl.user.%s' % cache_key
+    refc_cache_key = 'sdl.refc.%s' % cache_key
     channel_cache.set(user_cache_key, (template_name, new_context))
     channel_cache.add(refc_cache_key, 0)
 
-    cache_key = 'swampdragon-live.type.%d.instance.%d' % (instance_type_pk, instance_pk)
+    cache_key = 'sdl.type.%d.instance.%d' % (instance_type_pk, instance_pk)
     cache_keys = channel_cache.get(cache_key, set())
     cache_keys.add(user_cache_key)
     channel_cache.set(cache_key, set(cache_keys))
@@ -52,14 +52,14 @@ def listen_on_queryset(channel_cache, tag_name, template_name, user, new_context
     queryset_hash = hashlib.sha1('%d:%s' % (queryset_type_pk, queryset_dump)).hexdigest()
     username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
     cache_key = '%s-%s-%s' % (fragment_hash, queryset_hash, username_hash)
-    user_cache_key = 'swampdragon-live-%s' % cache_key
-    data_cache_key = 'swampdragon-live.data.%s' % cache_key
-    refc_cache_key = 'swampdragon-live.refc.%s' % cache_key
+    user_cache_key = 'sdl.user.%s' % cache_key
+    data_cache_key = 'sdl.data.%s' % cache_key
+    refc_cache_key = 'sdl.refc.%s' % cache_key
     channel_cache.set(data_cache_key, (template_name, new_context))
     channel_cache.set(user_cache_key, (queryset_ref, data_cache_key))
     channel_cache.add(refc_cache_key, 0)
 
-    cache_key = 'swampdragon-live.type.%d.queryset' % queryset_type_pk
+    cache_key = 'sdl.type.%d.queryset' % queryset_type_pk
     cache_keys = channel_cache.get(cache_key, set())
     cache_keys.add(user_cache_key)
     channel_cache.set(cache_key, set(cache_keys))
@@ -95,7 +95,9 @@ def include_live(context, tag_name, template_name, **kwargs):
                                                 user, new_context, queryset_ref=value)
             user_cache_keys.append(user_cache_key)
 
-    classes = 'swampdragon-live %s' % ' '.join(user_cache_keys)
+    make_channel = lambda c: c.replace('sdl.user.', 'swampdragon-live-')
+    channels = map(make_channel, user_cache_keys)
+    classes = 'swampdragon-live %s' % ' '.join(channels)
 
     content = '<%s class="%s">' % (tag_name, classes)
     content += get_template(template_name).render(new_context)

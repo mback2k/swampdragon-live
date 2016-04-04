@@ -13,20 +13,24 @@ class LiveTemplateRouter(BaseRouter):
         self.channel_cache = get_channel_cache()
         return super(LiveTemplateRouter, self).__init__(*args, **kwargs)
 
-    def get_subscription_channels(self, key, **kwargs):
-        return self.channel_cache.keys('swampdragon-live-*')
+    def get_subscription_channels(self, chan, **kwargs):
+        if chan and self.validate_channel(chan):
+            user_cache_key = chan.replace('swampdragon-live-', 'sdl.user.')
+            if self.channel_cache.get(user_cache_key):
+                return [chan]
+        return []
 
     def subscribe(self, **kwargs):
         channel = kwargs.get('channel')
         if channel and self.validate_channel(channel):
             self.subscribe_valid_channel(channel)
-        return super(LiveTemplateRouter, self).subscribe(**kwargs)
+        return super(LiveTemplateRouter, self).subscribe(chan=channel, **kwargs)
 
     def unsubscribe(self, **kwargs):
         channel = kwargs.get('channel')
         if channel and self.validate_channel(channel):
             self.unsubscribe_valid_channel(channel)
-        return super(LiveTemplateRouter, self).unsubscribe(**kwargs)
+        return super(LiveTemplateRouter, self).unsubscribe(chan=channel, **kwargs)
 
     def validate_channel(self, channel):
         if channel.startswith('swampdragon-live-'):
@@ -39,13 +43,21 @@ class LiveTemplateRouter(BaseRouter):
         return False
 
     def subscribe_valid_channel(self, channel):
-        refc_cache_key = channel.replace('swampdragon-live-', 'swampdragon-live.refc.')
+        user_cache_key = channel.replace('swampdragon-live-', 'sdl.user.')
+        data_cache_key = channel.replace('swampdragon-live-', 'sdl.data.')
+        refc_cache_key = channel.replace('swampdragon-live-', 'sdl.refc.')
         if self.channel_cache.incr(refc_cache_key):
-            self.channel_cache.expire(channel, timeout=300)
+            self.channel_cache.expire(user_cache_key, timeout=300)
+            self.channel_cache.expire(data_cache_key, timeout=300)
+            self.channel_cache.expire(refc_cache_key, timeout=300)
 
     def unsubscribe_valid_channel(self, channel):
-        refc_cache_key = channel.replace('swampdragon-live-', 'swampdragon-live.refc.')
+        user_cache_key = channel.replace('swampdragon-live-', 'sdl.user.')
+        data_cache_key = channel.replace('swampdragon-live-', 'sdl.data.')
+        refc_cache_key = channel.replace('swampdragon-live-', 'sdl.refc.')
         if not self.channel_cache.decr(refc_cache_key):
-            self.channel_cache.delete(channel)
+            self.channel_cache.delete(user_cache_key)
+            self.channel_cache.delete(data_cache_key)
+            self.channel_cache.delete(refc_cache_key)
 
 route_handler.register(LiveTemplateRouter)

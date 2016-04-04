@@ -13,7 +13,7 @@ var SwampDragonLive = function (sd, el) {
         if (c.lastIndexOf(sdc+'-', 0) === 0) {
           if (sdl.cs.indexOf(c) === -1) {
             sdl.cs.push(c);
-            sdl.sd.subscribe(sdc, c, {'key': c}, null, null);
+            sdl.sd.subscribe(sdc, c, {}, null, null);
           };
         };
       };

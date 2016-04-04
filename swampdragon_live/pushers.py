@@ -8,23 +8,25 @@ from .utils import get_channel_cache
 def push_new_content_for_instance(instance_type_pk, instance_pk):
     channel_cache = get_channel_cache()
 
-    cache_key = 'swampdragon-live.type.%d.instance.%d' % (instance_type_pk, instance_pk)
+    cache_key = 'sdl.type.%d.instance.%d' % (instance_type_pk, instance_pk)
     user_cache_keys = channel_cache.get(cache_key, [])
 
     for user_cache_key in user_cache_keys:
-        yield lambda: push_new_content(channel_cache, user_cache_key, user_cache_key)
+        channel = user_cache_key.replace('sdl.user.', 'swampdragon-live-')
+        yield lambda: push_new_content(channel_cache, channel, user_cache_key)
 
 def push_new_content_for_queryset(queryset_type_pk, queryset_pk):
     channel_cache = get_channel_cache()
 
-    cache_key = 'swampdragon-live.type.%d.queryset' % (queryset_type_pk)
+    cache_key = 'sdl.type.%d.queryset' % (queryset_type_pk)
     user_cache_keys = channel_cache.get(cache_key, [])
 
     for user_cache_key in user_cache_keys:
         queryset_ref, data_cache_key = channel_cache.get(user_cache_key, (None, None))
         if queryset_ref and data_cache_key:
             if queryset_ref.resolve().filter(pk=queryset_pk).exists():
-                yield lambda: push_new_content(channel_cache, user_cache_key, data_cache_key)
+                channel = user_cache_key.replace('sdl.user.', 'swampdragon-live-')
+                yield lambda: push_new_content(channel_cache, channel, data_cache_key)
 
 def push_new_content(channel_cache, channel, cache_key):
     template_name, new_context = channel_cache.get(cache_key, (None, None))
