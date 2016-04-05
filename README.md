@@ -1,6 +1,6 @@
 [SwampDragon-live](https://github.com/mback2k/swampdragon-live) is an
 extension to [Django](https://www.djangoproject.com/) and
-[SwampDragon](http://swampdragon.net/) with SwampDragon-auth and Celery
+[SwampDragon](http://swampdragon.net/) with SwampDragon-auth and django-redis
 which adds support for live updating Django template snippets on model changes.
 
 Installation
@@ -24,6 +24,18 @@ Add the package to your `INSTALLED_APPS`:
 
 Example
 -------
+Make sure to use django-redis as a Cache backend named 'swampdragon-live' or 'default':
+
+    CACHES = {
+        'swampdragon-live': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://localhost:6379/0',
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+    }
+
 Make sure to add the following line to your Django settings file:
 
     SWAMP_DRAGON_CONNECTION = ('swampdragon_auth.socketconnection.HttpDataConnection', '/data')
@@ -37,7 +49,7 @@ Add the required JavaScript to your Django template:
 
     {% swampdragon_settings %}
     <script type="text/javascript" src="{{ STATIC_URL }}swampdragon/js/dist/swampdragon.min.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}swampdragon/js/dist/swampdragon.live.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}swampdragon/js/live/swampdragon.live.js"></script>
 
 Use the include_live template-tag instead of the default include template-tag,
 with rows being a Django database QuerySet to listen for added, changed, deleted instances:
