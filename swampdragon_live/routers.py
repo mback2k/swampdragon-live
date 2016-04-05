@@ -13,24 +13,30 @@ class LiveTemplateRouter(BaseRouter):
         self.channel_cache = get_channel_cache()
         return super(LiveTemplateRouter, self).__init__(*args, **kwargs)
 
-    def get_subscription_channels(self, chan, **kwargs):
-        if chan and self.validate_channel(chan):
-            user_cache_key = chan.replace('swampdragon-live-', 'sdl.user.')
+    def get_subscription_channels(self, valid_channel=None, **kwargs):
+        if valid_channel:
+            user_cache_key = valid_channel.replace('swampdragon-live-', 'sdl.user.')
             if self.channel_cache.get(user_cache_key):
-                return [chan]
+                return [valid_channel]
         return []
 
     def subscribe(self, **kwargs):
         channel = kwargs.get('channel')
         if channel and self.validate_channel(channel):
             self.subscribe_valid_channel(channel)
-        return super(LiveTemplateRouter, self).subscribe(chan=channel, **kwargs)
+            kwargs['valid_channel'] = channel
+        elif 'valid_channel' in kwargs:
+            del kwargs['valid_channel']
+        return super(LiveTemplateRouter, self).subscribe(**kwargs)
 
     def unsubscribe(self, **kwargs):
         channel = kwargs.get('channel')
         if channel and self.validate_channel(channel):
             self.unsubscribe_valid_channel(channel)
-        return super(LiveTemplateRouter, self).unsubscribe(chan=channel, **kwargs)
+            kwargs['valid_channel'] = channel
+        elif 'valid_channel' in kwargs:
+            del kwargs['valid_channel']
+        return super(LiveTemplateRouter, self).unsubscribe(**kwargs)
 
     def validate_channel(self, channel):
         if channel.startswith('swampdragon-live-'):
