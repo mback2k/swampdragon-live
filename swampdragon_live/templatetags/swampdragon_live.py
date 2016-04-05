@@ -28,41 +28,31 @@ def listen_on_instance(channel_cache, tag_name, template_name, user, new_context
     instance_type_pk = instance_ref.instance_type_pk
     instance_pk = instance_ref.instance_pk
 
-    fragment_hash = hashlib.sha1('%s:%s' % (tag_name, template_name)).hexdigest()
     instance_hash = hashlib.sha1('%d:%d' % (instance_type_pk, instance_pk)).hexdigest()
+    fragment_hash = hashlib.sha1('%s:%s' % (tag_name, template_name)).hexdigest()
     username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
-    cache_key = '%s-%s-%s' % (fragment_hash, instance_hash, username_hash)
+    cache_key = '%s-%s-%s' % (instance_hash, fragment_hash, username_hash)
     user_cache_key = 'sdl.user.%s' % cache_key
     refc_cache_key = 'sdl.refc.%s' % cache_key
     channel_cache.set(user_cache_key, (template_name, new_context))
     channel_cache.add(refc_cache_key, 0)
 
-    cache_key = 'sdl.type.%d.instance.%d' % (instance_type_pk, instance_pk)
-    cache_keys = channel_cache.get(cache_key, set())
-    cache_keys.add(user_cache_key)
-    channel_cache.set(cache_key, set(cache_keys))
-
     return user_cache_key
 
 def listen_on_queryset(channel_cache, tag_name, template_name, user, new_context, queryset_ref):
     queryset_type_pk = queryset_ref.queryset_type_pk
-    queryset_dump = str(queryset_ref.query)
+    queryset_dump = hashlib.sha1(str(queryset_ref.query)).hexdigest()
 
+    queryset_hash = hashlib.sha1('%d:qs' % queryset_type_pk).hexdigest()
     fragment_hash = hashlib.sha1('%s:%s' % (tag_name, template_name)).hexdigest()
-    queryset_hash = hashlib.sha1('%d:%s' % (queryset_type_pk, queryset_dump)).hexdigest()
     username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
-    cache_key = '%s-%s-%s' % (fragment_hash, queryset_hash, username_hash)
+    cache_key = '%s-%s-%s-%s' % (queryset_hash, queryset_dump, fragment_hash, username_hash)
     user_cache_key = 'sdl.user.%s' % cache_key
     data_cache_key = 'sdl.data.%s' % cache_key
     refc_cache_key = 'sdl.refc.%s' % cache_key
     channel_cache.set(data_cache_key, (template_name, new_context))
     channel_cache.set(user_cache_key, (queryset_ref, data_cache_key))
     channel_cache.add(refc_cache_key, 0)
-
-    cache_key = 'sdl.type.%d.queryset' % queryset_type_pk
-    cache_keys = channel_cache.get(cache_key, set())
-    cache_keys.add(user_cache_key)
-    channel_cache.set(cache_key, set(cache_keys))
 
     return user_cache_key
 
