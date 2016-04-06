@@ -25,7 +25,7 @@ var SwampDragonLive = function (sd, el) {
       var ml = sdl.el.getElementsByClassName(c);
       for (var j = 0; j < ml.length; j++) {
         var m = ml[j];
-        m.innerHTML = message.data;
+        m.outerHTML = message.data;
         sdl.listen(m);
       };
     };
