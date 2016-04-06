@@ -59,7 +59,12 @@ with rows being a Django database QuerySet to listen for added, changed, deleted
 Use the include_live template-tag instead of the default include template-tag,
 with row being a single Django database Model instance to listen for changes:
 
-    {% include_live 'tr' 'includes/row_cols.html' row=row perms=perms %}
+    {% include_live 'table-row' 'includes/row_cols.html' row=row perms=perms %}
+
+Use the swampdragon_live variable within the included template to add the
+required classes to the root-tag of this template, e.g. the first tag-node:
+
+    <tr class="{{ swampdragon_live }}">...</tr>
 
 A real-world example can be found in the Django project WebGCal:
 * https://github.com/mback2k/django-webgcal/blob/master/webgcal/apps/webgcal/templates/show_dashboard.html
