@@ -30,8 +30,11 @@ def get_key_for_instane(fragment_name, template_name, user, instance_ref):
 
     instance_hash = hashlib.sha1('%d:%d' % (instance_type_pk, instance_pk)).hexdigest()
     fragment_hash = hashlib.sha1('%s:%s' % (fragment_name, template_name)).hexdigest()
-    username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
-    cache_key = '%s-%s-%s' % (instance_hash, fragment_hash, username_hash)
+    cache_key = 'i%s-f%s' % (instance_hash, fragment_hash)
+
+    if user:
+        username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
+        cache_key = '%s-u%s' % (cache_key, username_hash)
 
     return cache_key
 
@@ -41,31 +44,37 @@ def get_key_for_queryset(fragment_name, template_name, user, queryset_ref):
 
     queryset_hash = hashlib.sha1('%d:qs' % queryset_type_pk).hexdigest()
     fragment_hash = hashlib.sha1('%s:%s' % (fragment_name, template_name)).hexdigest()
-    username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
-    cache_key = '%s-%s-%s-%s' % (queryset_hash, queryset_dump, fragment_hash, username_hash)
+    cache_key = 'q%s-d%s-f%s' % (queryset_hash, queryset_dump, fragment_hash)
+
+    if user:
+        username_hash = hashlib.sha1('%d:%s' % (user.id, user.username)).hexdigest()
+        cache_key = '%s-u%s' % (cache_key, username_hash)
 
     return cache_key
 
 def listen_on_instance(channel_cache, cache_key, template_name, new_context, instance_ref):
-    user_cache_key = 'sdl.user.%s' % cache_key
+    tmpl_cache_key = 'sdl.tmpl.%s' % cache_key
     refc_cache_key = 'sdl.refc.%s' % cache_key
 
-    channel_cache.set(user_cache_key, (template_name, new_context))
+    channel_cache.set(tmpl_cache_key, (template_name, new_context))
     channel_cache.add(refc_cache_key, 0)
 
 def listen_on_queryset(channel_cache, cache_key, template_name, new_context, queryset_ref):
-    user_cache_key = 'sdl.user.%s' % cache_key
+    tmpl_cache_key = 'sdl.tmpl.%s' % cache_key
     data_cache_key = 'sdl.data.%s' % cache_key
     refc_cache_key = 'sdl.refc.%s' % cache_key
 
     channel_cache.set(data_cache_key, (template_name, new_context))
-    channel_cache.set(user_cache_key, (queryset_ref, data_cache_key))
+    channel_cache.set(tmpl_cache_key, (queryset_ref, data_cache_key))
     channel_cache.add(refc_cache_key, 0)
 
 @register.simple_tag(takes_context=True)
 def include_live(context, fragment_name, template_name, **kwargs):
-    user = context['user']
-    kwargs['user'] = user
+    if 'user' in context:
+        user = context['user']
+        kwargs['user'] = user
+    else:
+        user = None
 
     new_context_data = {}
     for key, value in kwargs.items():
