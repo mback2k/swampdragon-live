@@ -21,5 +21,6 @@ def push_new_content_for_queryset(channel_cache, queryset_hash, queryset_pk):
 def push_new_content(channel_cache, channel, cache_key):
     template_name, new_context = channel_cache.get(cache_key, (None, None))
     if template_name and new_context:
+        new_context.update({'is_swampdragon_live': True})
         value = get_template(template_name).render(new_context)
         publish_data(channel=channel, data=value)

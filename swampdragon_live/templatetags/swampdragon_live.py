@@ -101,6 +101,7 @@ def include_live(context, fragment_name, template_name, **kwargs):
     classes = 'swampdragon-live %s' % ' '.join(channels)
 
     new_context_data['swampdragon_live'] = classes
+    new_context_data['is_swampdragon_live'] = False
     new_context = ContextRef(new_context_data)
 
     channel_cache = get_channel_cache()
