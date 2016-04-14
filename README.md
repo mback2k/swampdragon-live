@@ -66,6 +66,13 @@ required classes to the root-tag of this template, e.g. the first tag-node:
 
     <tr class="{{ swampdragon_live }}">...</tr>
 
+You can check if your template is being live rendered by a content pusher by
+using the context variable `is_swampdragon_live` like this:
+
+    {% if is_swampdragon_live %}
+    <style onload="alert('Hello World!');"></style>
+    {% endif %}
+
 A real-world example can be found in the Django project WebGCal:
 * https://github.com/mback2k/django-webgcal/blob/master/webgcal/apps/webgcal/templates/show_dashboard.html
 * https://github.com/mback2k/django-webgcal/tree/master/webgcal/apps/webgcal/templates/includes
