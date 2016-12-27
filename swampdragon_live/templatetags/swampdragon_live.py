@@ -28,26 +28,26 @@ def get_key_for_instane(fragment_name, template_name, user, instance_ref):
     instance_type_pk = instance_ref.instance_type_pk
     instance_pk = instance_ref.instance_pk
 
-    instance_hash = hashlib.sha1(bytes('%d:%d' % (instance_type_pk, instance_pk))).hexdigest()
-    fragment_hash = hashlib.sha1(bytes('%s:%s' % (fragment_name, template_name))).hexdigest()
+    instance_hash = hashlib.sha1(str('%d:%d' % (instance_type_pk, instance_pk)).encode('utf-8')).hexdigest()
+    fragment_hash = hashlib.sha1(str('%s:%s' % (fragment_name, template_name)).encode('utf-8')).hexdigest()
     cache_key = 'i%s-f%s' % (instance_hash, fragment_hash)
 
     if user:
-        username_hash = hashlib.sha1(b'%d:%s' % (user.id, user.username)).hexdigest()
+        username_hash = hashlib.sha1(str('%d:%s' % (user.id, user.username)).encode('utf-8')).hexdigest()
         cache_key = '%s-u%s' % (cache_key, username_hash)
 
     return cache_key
 
 def get_key_for_queryset(fragment_name, template_name, user, queryset_ref):
     queryset_type_pk = queryset_ref.queryset_type_pk
-    queryset_dump = hashlib.sha1(bytes(queryset_ref.query)).hexdigest()
+    queryset_dump = hashlib.sha1(str(queryset_ref.query).encode('utf-8')).hexdigest()
 
-    queryset_hash = hashlib.sha1(bytes('%d:qs' % queryset_type_pk)).hexdigest()
-    fragment_hash = hashlib.sha1(bytes('%s:%s' % (fragment_name, template_name))).hexdigest()
+    queryset_hash = hashlib.sha1(str('%d:qs' % queryset_type_pk).encode('utf-8')).hexdigest()
+    fragment_hash = hashlib.sha1(str('%s:%s' % (fragment_name, template_name)).encode('utf-8')).hexdigest()
     cache_key = 'q%s-d%s-f%s' % (queryset_hash, queryset_dump, fragment_hash)
 
     if user:
-        username_hash = hashlib.sha1(bytes('%d:%s' % (user.id, user.username))).hexdigest()
+        username_hash = hashlib.sha1(str('%d:%s' % (user.id, user.username)).encode('utf-8')).hexdigest()
         cache_key = '%s-u%s' % (cache_key, username_hash)
 
     return cache_key
