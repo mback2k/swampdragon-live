@@ -44,7 +44,7 @@ class LiveTemplateRouter(BaseRouter):
             if channel_last_part.startswith('u'):
                 user = self.connection.get_user()
                 if user:
-                    username_hash = hashlib.sha1(b'%d:%s' % (user.id, user.username)).hexdigest()
+                    username_hash = hashlib.sha1(bytes('%d:%s' % (user.id, user.username))).hexdigest()
                     if username_hash and channel_last_part[1:] == username_hash:
                         return True
             elif channel_last_part.startswith('f'):
